@@ -1,0 +1,8 @@
+# Repo-level dev config. Each app ships from its own pyproject:
+#   core/pyproject.toml            -> voiceapp-core (shared by both apps)
+#   voiceapp/engine/pyproject.toml -> voiceapp-engine (Voice App sidecar)
+#   studio/engine/pyproject.toml   -> voiceapp-studio (training tools)
+
+[tool.pytest.ini_options]
+pythonpath = ["core/src", "voiceapp/engine/src", "studio/engine/src"]
+testpaths = ["core/tests", "voiceapp/engine/tests", "studio/engine/tests", "tests"]

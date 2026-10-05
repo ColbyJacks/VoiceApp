@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voiceapp-core"
+version = "0.1.0"
+description = "Shared model loading, audio helpers and conversion interface for Voice App and VoiceAppStudio"
+requires-python = ">=3.10"
+# Keep this list tiny: everything here ends up in the Voice App installer.
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+# torch is only needed to open .pth files and run inference. Each app decides
+# which torch build (CPU or CUDA) to bundle, so it stays optional here.
+torch = ["torch>=2.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
