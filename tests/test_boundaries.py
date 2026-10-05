@@ -9,8 +9,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Libraries only training needs. None may reach the Voice App engine or core.
-TRAINING_ONLY = {"librosa", "faiss", "faiss-cpu", "tensorboard", "sklearn", "scikit-learn", "torchaudio", "voiceapp_studio", "voiceapp-studio"}
+# Libraries only training (or the old Gradio UI) needs. None may reach the
+# Voice App engine or core. torchaudio and faiss are NOT here: realtime
+# inference uses them for resampling and the .index lookup.
+TRAINING_ONLY = {
+    "tensorboard", "sklearn", "scikit-learn", "matplotlib", "gradio",
+    "yt_dlp", "yt-dlp", "edge_tts", "edge-tts", "voiceapp_studio", "voiceapp-studio",
+}
 
 
 def imported_modules(package_dir: Path) -> set[str]:
@@ -47,7 +52,7 @@ def test_engine_imports_without_torch_or_sounddevice():
     """Quick boot: importing the engine must not pull in heavy libraries."""
     code = (
         "import sys, voiceapp_engine.protocol, voiceapp_engine.__main__;"
-        "heavy = {'torch', 'sounddevice', 'librosa'} & set(sys.modules);"
+        "heavy = {'torch', 'sounddevice', 'pedalboard', 'rvc'} & set(sys.modules);"
         "assert not heavy, heavy"
     )
     paths = [str(ROOT / p) for p in ("core/src", "voiceapp/engine/src")]

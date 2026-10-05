@@ -30,3 +30,13 @@ def test_passthrough_is_a_converter():
     assert isinstance(conv, Converter)
     block = np.arange(4, dtype=np.float32)
     assert np.array_equal(conv.process(block), block)
+
+
+def test_find_index(tmp_path):
+    from voiceapp_core.converter import find_index
+
+    (tmp_path / "a.pth").touch()
+    (tmp_path / "b.index").touch()
+    assert find_index(tmp_path / "a.pth") is None  # never borrows another voice's index
+    (tmp_path / "a.index").touch()
+    assert find_index(tmp_path / "a.pth") == tmp_path / "a.index"

@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import argparse
 import sys
+from pathlib import Path
 
+from voiceapp_engine.engine import Engine
 from voiceapp_engine.protocol import Dispatcher
 
 
-def main() -> None:
-    dispatcher = Dispatcher()
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="voiceapp-engine")
+    parser.add_argument("--models", type=Path, help="folder of .pth/.index files (default: %%APPDATA%%\\VoiceApp\\models)")
+    args = parser.parse_args(argv)
+
+    dispatcher = Dispatcher(Engine(models_folder=args.models))
     try:
         for line in sys.stdin:
             if line.strip():

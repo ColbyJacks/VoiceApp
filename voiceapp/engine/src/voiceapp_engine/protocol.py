@@ -1,7 +1,10 @@
 """Line-delimited JSON protocol between the Tauri UI and this sidecar.
 
-Request:  {"id": 1, "method": "load_model", "params": {"path": "C:/.../voice.pth"}}
-Response: {"id": 1, "result": {...}}  or  {"id": 1, "error": "message"}
+Request:  {"id": 1, "method": "load_model", "params": {"model": "AnimeYan"}}
+Response: {"id": 1, "result": {...status...}}  or  {"id": 1, "error": "message"}
+
+Every method except hello, list_devices and list_models answers with the
+full engine status, so the UI can redraw from a single reply.
 """
 
 from __future__ import annotations
@@ -17,43 +20,35 @@ from voiceapp_engine.engine import Engine
 class Dispatcher:
     def __init__(self, engine: Engine | None = None) -> None:
         self.engine = engine or Engine()
+        e = self.engine
         self._methods: dict[str, Callable[..., Any]] = {
-            "hello": self._hello,
+            "hello": lambda: {"engine": __version__, "core": core_version},
             "list_devices": self._list_devices,
-            "set_devices": self._set_devices,
-            "load_model": self._load_model,
-            "set_pitch": self._set_pitch,
-            "start": self._start,
-            "stop": self._stop,
-            "status": self.engine.status,
+            "list_models": e.list_models,
+            "status": e.status,
+            "set_devices": self._with_status(e.set_devices),
+            "load_model": self._with_status(lambda model=None: e.load_model(model)),
+            "set": self._with_status(e.set_params),
+            "set_fx": self._with_status(e.set_fx),
+            "toggle_bypass": self._with_status(e.toggle_bypass),
+            "toggle_mute": self._with_status(e.toggle_mute),
+            "start": self._with_status(e.start),
+            "stop": self._with_status(e.stop),
         }
 
-    def _hello(self) -> dict[str, Any]:
-        return {"engine": __version__, "core": core_version}
+    def _with_status(self, fn: Callable[..., Any]) -> Callable[..., dict[str, Any]]:
+        def call(**params: Any) -> dict[str, Any]:
+            fn(**params)
+            return self.engine.status()
 
-    def _list_devices(self) -> list[dict[str, Any]]:
-        from voiceapp_engine.audio_io import list_devices
+        return call
 
-        return list_devices()
+    def _list_devices(self) -> dict[str, Any]:
+        from voiceapp_engine.audio_io import default_devices, list_devices
 
-    def _set_devices(self, input: int | None = None, output: int | None = None) -> dict[str, Any]:
-        self.engine.set_devices(input, output)
-        return self.engine.status()
-
-    def _load_model(self, path: str | None = None) -> dict[str, Any]:
-        return self.engine.load_model(path)
-
-    def _set_pitch(self, semitones: float) -> dict[str, Any]:
-        self.engine.set_pitch(semitones)
-        return self.engine.status()
-
-    def _start(self) -> dict[str, Any]:
-        self.engine.start()
-        return self.engine.status()
-
-    def _stop(self) -> dict[str, Any]:
-        self.engine.stop()
-        return self.engine.status()
+        devices = list_devices()
+        inp, out = default_devices(devices)
+        return {"devices": devices, "default_input": inp, "default_output": out}
 
     def handle_line(self, line: str) -> str:
         req_id = None

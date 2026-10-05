@@ -41,15 +41,22 @@ Install only `./core` and `./voiceapp/engine` if you are not working on Studio.
 
 ### Voice App engine protocol
 
-The engine reads one JSON request per line on stdin and answers on stdout:
+The engine is the audio side of the old `voice_tray_app.py` (devices, mute,
+real-voice bypass, FX rack, volume booster, ear monitor, level meters) without
+the Tkinter window. It reads one JSON request per line on stdin and answers on
+stdout:
 
 ```
-{"id": 1, "method": "load_model", "params": {"path": "C:/models/alice.pth"}}
-{"id": 1, "result": {"running": false, "model": "alice", "pitch": 0.0, ...}}
+{"id": 1, "method": "load_model", "params": {"model": "AnimeYan"}}
+{"id": 1, "result": {"running": false, "model": "AnimeYan", "mode": "voice", ...}}
 ```
 
-Methods: `hello`, `list_devices`, `set_devices(input, output)`, `load_model(path)`,
-`set_pitch(semitones)`, `start`, `stop`, `status`.
+Methods: `hello`, `list_devices`, `list_models`, `status`,
+`set_devices(input, output, monitor, use_monitor)`, `load_model(model)`,
+`set(pitch, index_rate, volume_envelope, in_gain, out_vol, monitor_vol)`,
+`set_fx(reverb, delay, chorus, radio, ...)`, `toggle_bypass`, `toggle_mute`,
+`start`, `stop`. Models are found by name in `--models` (default
+`%APPDATA%\VoiceApp\models`), each with an optional matching `.index`.
 
 ### Studio CLI
 
@@ -59,5 +66,4 @@ voiceapp-studio inspect alice.pth
 ```
 
 The training steps (`preprocess`, `extract`, `train`, `index`, `export`) are
-scaffolded and not implemented yet; neither is RVC inference in `core`
-(`RvcConverter.process`). Voice App falls back to dry audio until it is.
+scaffolded and not implemented yet.

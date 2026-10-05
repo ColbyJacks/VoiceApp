@@ -11,9 +11,22 @@ requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
-# torch is only needed to open .pth files and run inference. Each app decides
-# which torch build (CPU or CUDA) to bundle, so it stays optional here.
-torch = ["torch>=2.1"]
+# torch is only needed to open .pth files; the rest runs RVC inference.
+# Each app decides which torch build (CPU or CUDA) to bundle, so these stay
+# optional here. Versions follow the original requirements.txt.
+torch = ["torch>=2.2.0"]
+rvc = [
+    "torch>=2.2.0",
+    "torchaudio>=2.2.0",
+    "faiss-cpu>=1.8.0",
+    "transformers>=4.40.0",
+    "torchcrepe>=0.0.22",
+    "torchfcpe>=0.0.4",
+    "einops>=0.7.0",
+    "noisereduce>=3.0.0",
+    "webrtcvad-wheels>=2.0.10",
+    "soundfile>=0.12.1",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
