@@ -1,0 +1,77 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.obj
+*.o
+*.a
+*.lib
+*.pyd
+*.dll
+*.dylib
+
+# Executables & Portables
+*.exe
+ffmpeg.exe
+ffprobe.exe
+
+# Model weights & Checkpoints (large binary models)
+*.pth
+*.pt
+*.onnx
+*.safetensors
+*.bin
+*.index
+*.ckpt
+assets/rmvpe/*.pt
+assets/pretrained_v2/*.pth
+assets/hubert/*
+rvc/models/
+models/
+exported_models/
+
+# Datasets, audio files, and test caches
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.aac
+*.wma
+*.opus
+cleaned_for_rvc/
+raw_recordings/
+test_outputs/
+assets/audios/
+assets/datasets/
+logs/
+*.log
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE & OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local configuration overrides
+assets/config.json
