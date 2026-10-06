@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voiceapp-engine"
+version = "0.1.0"
+description = "Voice App audio engine: the Python sidecar behind the Tauri UI"
+requires-python = ">=3.10"
+# Runtime only. Training libraries (tensorboard, scikit-learn, matplotlib, gradio...)
+# belong to VoiceAppStudio and must never be added here; tests/test_boundaries.py
+# enforces this.
+dependencies = [
+    "voiceapp-core",
+    "numpy>=1.24",
+    "sounddevice>=0.4.6",
+    "pedalboard>=0.8.0",
+]
+
+[project.optional-dependencies]
+rvc = ["voiceapp-core[rvc]"]
+
+[project.scripts]
+voiceapp-engine = "voiceapp_engine.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

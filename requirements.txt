@@ -1,0 +1,3 @@
+# Both apps (what the old single-folder install had). For Voice App alone,
+# use voiceapp/requirements.txt.
+-r studio/requirements.txt

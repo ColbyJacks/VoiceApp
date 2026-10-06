@@ -1,0 +1,4 @@
+-e ./core
+-e ./voiceapp/engine
+-e ./studio/engine
+pytest>=8
