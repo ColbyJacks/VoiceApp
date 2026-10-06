@@ -5,28 +5,40 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "voiceapp-core"
 version = "0.1.0"
-description = "Shared model loading, audio helpers and conversion interface for Voice App and VoiceAppStudio"
+description = "Shared voice engine for Voice App and VoiceAppStudio: model loading and RVC inference"
 requires-python = ">=3.10"
-# Keep this list tiny: everything here ends up in the Voice App installer.
+# Keep this list tiny: importing voiceapp_core must stay cheap.
 dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
-# torch is only needed to open .pth files; the rest runs RVC inference.
-# Each app decides which torch build (CPU or CUDA) to bundle, so these stay
-# optional here. Versions follow the original requirements.txt.
+# torch alone is enough to read .pth files.
 torch = ["torch>=2.2.0"]
+# Everything the realtime RVC engine (the rvc package) needs. Each app picks its
+# own torch build (CPU or CUDA). Versions follow the original requirements.txt.
 rvc = [
     "torch>=2.2.0",
     "torchaudio>=2.2.0",
-    "faiss-cpu>=1.8.0",
-    "transformers>=4.40.0",
     "torchcrepe>=0.0.22",
     "torchfcpe>=0.0.4",
+    "transformers>=4.40.0",
+    "faiss-cpu>=1.8.0",
     "einops>=0.7.0",
-    "noisereduce>=3.0.0",
-    "webrtcvad-wheels>=2.0.10",
+    "scipy>=1.13.0",
+    "librosa>=0.10.2",
     "soundfile>=0.12.1",
+    "soxr>=0.3.7",
+    "stftpitchshift>=1.5.0",
+    "noisereduce>=3.0.0",
+    "pedalboard>=0.8.0",
+    "webrtcvad-wheels>=2.0.10",
+    "requests>=2.31.0",
+    "tqdm>=4.66.0",
+    "wget>=3.2",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+namespaces = true
+
+[tool.setuptools.package-data]
+"*" = ["*.json"]

@@ -3,9 +3,46 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+env/
 build/
 dist/
 .pytest_cache/
-# Model and training artifacts stay out of git
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Executables (ffmpeg/ffprobe are downloaded on first run)
+*.exe
+*.dll
+
+# Model weights, indexes and checkpoints
 *.pth
+*.pt
+*.onnx
+*.onnx.data
+*.safetensors
+*.bin
 *.index
+*.ckpt
+
+# Audio
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+
+# Runtime data. Voice App's lives in voiceapp/tray/, Studio's in studio/applio/.
+rvc/models/
+models/
+exported_models/
+logs/
+*.log
+raw_recordings/
+cleaned_for_rvc/
+test_outputs/
+studio/applio/assets/config.json
+studio/applio/assets/audios/
+studio/applio/assets/datasets/
+studio/applio/assets/infer_pid.txt
