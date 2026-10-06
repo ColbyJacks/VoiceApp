@@ -1,0 +1,48 @@
+# ==============================================================================
+# Voice Modulator & Trainer Studio - Minimal Required Dependencies
+# ==============================================================================
+# Note: For GPU acceleration, install PyTorch with your system's CUDA version:
+# pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+# ==============================================================================
+
+# Core Audio Processing & DSP
+numpy>=1.26.0,<3.0.0
+scipy>=1.13.0
+soundfile>=0.12.1
+sounddevice>=0.4.6
+librosa>=0.10.2
+noisereduce>=3.0.0
+pedalboard>=0.8.0
+stftpitchshift>=1.5.0
+soxr>=0.3.7
+resampy>=0.4.3
+webrtcvad-wheels>=2.0.10
+
+# Neural Network & PyTorch Ecosystem
+torch>=2.2.0
+torchaudio>=2.2.0
+torchcrepe>=0.0.22
+torchfcpe>=0.0.4
+einops>=0.7.0
+transformers>=4.40.0
+faiss-cpu>=1.8.0
+
+# Desktop GUI, System Tray & Global Hotkeys
+pystray>=0.19.5
+Pillow>=10.0.0
+keyboard>=0.13.5
+
+# Voice Trainer Studio & Media Ingestion
+yt-dlp>=2024.4.9
+requests>=2.31.0
+tqdm>=4.66.0
+wget>=3.2
+beautifulsoup4>=4.12.0
+
+# Web Interface & Monitoring
+gradio>=4.30.0
+tensorboard>=2.16.0
+matplotlib>=3.8.0
+psutil>=5.9.0
+edge-tts>=6.1.9
+pypresence>=4.3.0

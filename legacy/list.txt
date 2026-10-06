@@ -1,0 +1,38 @@
+ Volume in drive E is WorkSSD
+ Volume Serial Number is 52B9-3CCC
+
+ Directory of E:\Voice stuff
+
+09/12/2026  01:36 PM    <DIR>          .
+09/12/2026  01:33 PM    <DIR>          .github
+09/12/2026  01:33 PM               190 .gitignore
+09/12/2026  01:33 PM             8,300 app.py
+09/12/2026  01:33 PM    <DIR>          assets
+09/12/2026  01:27 PM             1,698 audiodenoiser.py
+09/12/2026  01:17 PM             4,155 audio_to_pth.py
+09/12/2026  01:32 PM    <DIR>          cleaned_for_rvc
+09/12/2026  01:33 PM            77,313 core.py
+09/12/2026  01:33 PM               273 docker-compose.yaml
+09/12/2026  01:33 PM             1,107 Dockerfile
+09/12/2026  01:33 PM               770 Dockerfile_cuda
+09/12/2026  01:33 PM             1,067 LICENSE
+09/12/2026  01:36 PM                 0 list.txt
+09/12/2026  01:33 PM    <DIR>          logs
+09/12/2026  01:33 PM               507 Makefile
+09/12/2026  01:24 PM    <DIR>          models
+09/12/2026  01:18 PM             3,547 pth_to_onnx.py
+09/12/2026  01:32 PM    <DIR>          raw_recordings
+09/12/2026  01:33 PM             5,094 README.md
+09/12/2026  01:33 PM               466 requirements.txt
+09/12/2026  01:33 PM               433 run-applio.bat
+09/12/2026  01:33 PM               177 run-applio.sh
+09/12/2026  01:33 PM             3,177 run-install.bat
+09/12/2026  01:33 PM             6,046 run-install.sh
+09/12/2026  01:33 PM               202 run-tensorboard.bat
+09/12/2026  01:33 PM                96 run-tensorboard.sh
+09/12/2026  01:33 PM    <DIR>          rvc
+09/12/2026  01:33 PM    <DIR>          tabs
+09/12/2026  01:33 PM             2,691 TERMS_OF_USE.md
+09/12/2026  01:24 PM             8,411 voice_tray_app.py
+              22 File(s)        125,720 bytes
+               9 Dir(s)  1,912,476,233,728 bytes free
