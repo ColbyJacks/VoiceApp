@@ -1,0 +1,14 @@
+{
+  "name": "voiceapp",
+  "productName": "Voice App",
+  "version": "1.0.0",
+  "description": "Real-time AI voice changer (RVC) with an Electron UI and a Python engine.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^38.0.0"
+  }
+}

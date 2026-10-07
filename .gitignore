@@ -1,0 +1,10 @@
+app/node_modules/
+app/.electron-cache/
+logs/
+settings.json
+voices/*.pth
+voices/*.index
+engine/rvc/models/embedders/*/
+engine/rvc/models/predictors/*.pt
+__pycache__/
+*.pyc
