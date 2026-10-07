@@ -1,0 +1,33 @@
+name: Voice App window
+
+# Builds the Tauri window (voice-app.exe) on Windows so it can be dropped next
+# to a locally built engine without installing Rust. The engine itself (GPU
+# torch, ~5 GB) is built on a PC with scripts/build-windows.ps1.
+on:
+  push:
+    paths: ["voice-app/**", ".github/workflows/voice-app.yml"]
+  pull_request:
+    paths: ["voice-app/**", ".github/workflows/voice-app.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: voice-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: voice-app/src-tauri
+      - run: npm install
+      - run: npx tauri build --no-bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voice-app-window
+          path: voice-app/src-tauri/target/release/voice-app.exe

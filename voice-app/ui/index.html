@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice App</title>
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.svg" alt="" class="brand-icon">
+      <span class="brand-name">Voice App</span>
+    </div>
+    <div class="pill" id="statusPill" data-phase="off">
+      <span class="pill-dot"></span><span id="statusText">Off</span>
+    </div>
+    <div class="latency" title="How far behind your voice the output runs. Lower feels snappier; pick Safe if you hear crackles.">
+      <span class="latency-label">Delay</span>
+      <div class="segmented" id="latency">
+        <button data-value="low">Low <small>128 ms</small></button>
+        <button data-value="balanced">Balanced <small>192 ms</small></button>
+        <button data-value="safe">Safe <small>256 ms</small></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="voices">
+      <div class="section-head">
+        <div>
+          <h1>Your voices</h1>
+          <p class="sub" id="voiceCount">Pick a voice to speak with</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn ghost" id="openFolder" title="Open the folder your voices are stored in">Open folder</button>
+          <button class="btn primary" id="addVoice">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            Add voice
+          </button>
+        </div>
+      </div>
+      <div class="voice-grid" id="voiceGrid"></div>
+      <div class="empty" id="emptyVoices" hidden>
+        <div class="empty-art">
+          <svg viewBox="0 0 64 64" width="56" height="56"><path d="M32 8v32m0 0-11-11m11 11 11-11M12 46v6a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4v-6" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Drop a voice here</h2>
+        <p>Drag a <b>.pth</b> voice file (and its <b>.index</b>, if it has one) onto this window, or use <b>Add voice</b>.</p>
+      </div>
+    </section>
+
+    <aside class="controls">
+      <div class="card power-card">
+        <button class="power" id="power" aria-label="Start">
+          <span class="power-ring" id="powerRing"></span>
+          <svg viewBox="0 0 24 24" width="38" height="38"><path d="M12 3v8M7.05 6.05a7 7 0 1 0 9.9 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="power-text">
+          <div class="power-title" id="powerTitle">Ready</div>
+          <div class="power-sub" id="powerSub">Press start to change your voice</div>
+        </div>
+        <div class="quick">
+          <button class="quick-btn" id="bypass" title="Hear your real voice instead (works in games too)">
+            Real voice <kbd>F8</kbd>
+          </button>
+          <button class="quick-btn" id="mute" title="Send silence (works in games too)">
+            Mute <kbd>F7</kbd>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Audio</h3>
+        <label class="field">
+          <span class="field-label">Microphone</span>
+          <select id="inputSel"></select>
+          <div class="meter"><div class="meter-fill" id="inMeter"></div></div>
+        </label>
+        <label class="field">
+          <span class="field-label">Send voice to</span>
+          <select id="outputSel"></select>
+          <div class="meter"><div class="meter-fill out" id="outMeter"></div></div>
+        </label>
+        <p class="hint" id="outputHint"></p>
+        <div class="row toggle-row">
+          <span>Hear myself</span>
+          <label class="switch"><input type="checkbox" id="monitorOn"><span></span></label>
+        </div>
+        <div id="monitorBox" hidden>
+          <label class="field">
+            <span class="field-label">Listen on</span>
+            <select id="monitorSel"></select>
+          </label>
+          <div class="slider">
+            <div class="slider-head"><span>Listen volume</span><output id="monitorVolOut"></output></div>
+            <input type="range" id="monitor_vol" min="0" max="2" step="0.05">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Sound</h3>
+        <div class="slider">
+          <div class="slider-head"><span>Pitch</span><output id="pitchOut"></output></div>
+          <input type="range" id="pitch" min="-24" max="24" step="1">
+          <div class="slider-scale"><span>Deeper</span><span>Higher</span></div>
+        </div>
+        <div class="slider">
+          <div class="slider-head"><span>Voice match</span><output id="indexOut"></output></div>
+          <input type="range" id="index_rate" min="0" max="1" step="0.05">
+        </div>
+        <div class="slider">
+          <div class="slider-head"><span>Mic boost</span><output id="gainOut"></output></div>
+          <input type="range" id="in_gain" min="0" max="3" step="0.05">
+        </div>
+        <div class="slider">
+          <div class="slider-head"><span>Output volume</span><output id="volOut"></output></div>
+          <input type="range" id="out_vol" min="0" max="2" step="0.05">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Effects</h3>
+        <div class="chips" id="fx">
+          <button class="chip" data-fx="reverb">Reverb</button>
+          <button class="chip" data-fx="delay">Echo</button>
+          <button class="chip" data-fx="chorus">Robot</button>
+          <button class="chip" data-fx="radio">Radio</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="drop-overlay" id="dropOverlay" hidden>
+    <div class="drop-box">
+      <svg viewBox="0 0 64 64" width="64" height="64"><path d="M32 8v32m0 0-11-11m11 11 11-11M12 46v6a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4v-6" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>Drop to add voice</div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="overlay-box">
+      <div class="spinner" id="overlaySpinner"></div>
+      <h2 id="overlayTitle"></h2>
+      <p id="overlayText"></p>
+      <div class="progress" id="overlayProgress" hidden><div class="progress-fill" id="overlayBar"></div></div>
+      <pre class="log" id="overlayLog" hidden></pre>
+      <div class="overlay-actions" id="overlayActions"></div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
