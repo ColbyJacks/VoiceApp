@@ -16,16 +16,17 @@ see `LICENSE`), split so the voice changer installs without any training tools.
 core/src/rvc/            RVC inference: configs, synthesizer networks, pitch
                          predictors, the realtime VoiceChanger
 core/src/voiceapp_core/  model info, audio helpers, the Converter interface
-voiceapp/tray/           today's Voice App window (voice_tray_app.py)
-voiceapp/engine/         the engine for the coming Tauri UI (stdio JSON sidecar)
+voice-app/               the new Voice App window (Tauri) and its Windows build
+voiceapp/engine/         Voice App's audio engine, run by the window (stdio JSON)
+voiceapp/tray/           the old Tkinter tray window (voice_tray_app.py)
 studio/engine/src/rvc/   training (rvc.train) and Studio-only tools, in the same
                          rvc namespace as core so Applio's imports still work
 studio/applio/           Voice Trainer Studio window, Applio's web UI and CLI
 tests/                   checks that Voice App never pulls in training code
 ```
 
-The Tauri UIs (`voiceapp/ui`, `studio/ui`) come later; the Tkinter windows stay
-until they replace them.
+Voice App's Tauri window is in `voice-app/` (see `voice-app/README.md` to build
+it). Studio still uses its Tkinter window.
 
 ## Running on Windows
 
@@ -74,22 +75,8 @@ The tests need only numpy and pytest; the full voice engine needs `requirements.
 
 ### Voice App engine protocol
 
-The engine is the audio side of the old `voice_tray_app.py` (devices, mute,
-real-voice bypass, FX rack, volume booster, ear monitor, level meters) without
-the Tkinter window. It reads one JSON request per line on stdin and answers on
-stdout:
-
-```
-{"id": 1, "method": "load_model", "params": {"model": "AnimeYan"}}
-{"id": 1, "result": {"running": false, "model": "AnimeYan", "mode": "voice", ...}}
-```
-
-Methods: `hello`, `list_devices`, `list_models`, `status`,
-`set_devices(input, output, monitor, use_monitor)`, `load_model(model)`,
-`set(pitch, index_rate, volume_envelope, in_gain, out_vol, monitor_vol)`,
-`set_fx(reverb, delay, chorus, radio, ...)`, `toggle_bypass`, `toggle_mute`,
-`start`, `stop`. Models are found by name in `--models` (default
-`%APPDATA%\VoiceApp\models`), each with an optional matching `.index`.
+See `voice-app/README.md` ("Talking to the engine") and
+`voiceapp/engine/src/voiceapp_engine/protocol.py`.
 
 ### Studio CLI
 

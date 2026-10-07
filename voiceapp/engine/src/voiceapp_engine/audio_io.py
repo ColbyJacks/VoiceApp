@@ -1,4 +1,9 @@
-"""Sound card access, ported from the tray app's DirectAudioEngine.
+"""Sound card access.
+
+Windows lists every device up to four times (MME, DirectSound, WASAPI and
+WDM-KS). Only WASAPI is offered: it runs at 48 kHz, shares the device with
+other apps, and opens reliably. The old tray app also offered WDM-KS devices
+labelled as MME, and opening those crashed with PaErrorCode -9996.
 
 sounddevice is imported lazily so the engine starts fast and so the protocol
 can be tested on machines without audio hardware.
@@ -12,21 +17,31 @@ from typing import Any, Callable
 import numpy as np
 
 
-def _host_tag(sd, dev) -> str:
-    host = sd.query_hostapis(dev["hostapi"])["name"]
-    return "WASAPI" if "WASAPI" in host else ("DS" if "DirectSound" in host else "MME")
+def _host_name(sd, dev) -> str:
+    return sd.query_hostapis(dev["hostapi"])["name"]
+
+
+def _usable_host(name: str) -> bool:
+    return "WASAPI" in name
 
 
 def list_devices() -> list[dict[str, Any]]:
+    """Input and output devices worth offering, deduplicated across host APIs."""
     import sounddevice as sd
 
+    all_devs = list(enumerate(sd.query_devices()))
+    has_wasapi = any(_usable_host(_host_name(sd, d)) for _, d in all_devs)
     devices = []
-    for index, dev in enumerate(sd.query_devices()):
+    for index, dev in all_devs:
+        host = _host_name(sd, dev)
+        # Off Windows (or with no WASAPI at all) fall back to whatever exists.
+        if has_wasapi and not _usable_host(host):
+            continue
         devices.append(
             {
                 "index": index,
                 "name": dev["name"],
-                "host": _host_tag(sd, dev),
+                "host": host,
                 "inputs": dev["max_input_channels"],
                 "outputs": dev["max_output_channels"],
                 "default_rate": dev["default_samplerate"],
@@ -35,24 +50,64 @@ def list_devices() -> list[dict[str, Any]]:
     return devices
 
 
-def default_devices(devices: list[dict[str, Any]]) -> tuple[int | None, int | None]:
-    """The tray app's picks: first WASAPI mic, and a WASAPI virtual cable
-    (for Discord etc.) if there is one, else the first WASAPI output."""
-    wasapi = [d for d in devices if d["host"] == "WASAPI"]
-    inputs = [d for d in wasapi if d["inputs"] > 0] or [d for d in devices if d["inputs"] > 0]
-    outputs = [d for d in wasapi if d["outputs"] > 0] or [d for d in devices if d["outputs"] > 0]
-    cables = [d for d in outputs if "cable" in d["name"].lower()]
-    out = (cables or outputs or [None])[0]
-    inp = (inputs or [None])[0]
-    return (inp["index"] if inp else None, out["index"] if out else None)
+def _system_default_names() -> tuple[str | None, str | None]:
+    import sounddevice as sd
+
+    names = []
+    for idx in sd.default.device:
+        try:
+            names.append(sd.query_devices(idx)["name"] if idx is not None and idx >= 0 else None)
+        except Exception:
+            names.append(None)
+    return names[0], names[1]
+
+
+def _match(devices: list[dict[str, Any]], name: str | None) -> dict[str, Any] | None:
+    """Find the device whose name matches `name`. MME truncates names to 31
+    characters, so a prefix match is accepted."""
+    if not name:
+        return None
+    for d in devices:
+        if d["name"] == name:
+            return d
+    for d in devices:
+        if d["name"].startswith(name) or name.startswith(d["name"]):
+            return d
+    return None
+
+
+def default_devices(devices: list[dict[str, Any]], default_names: tuple[str | None, str | None] | None = None) -> tuple[int | None, int | None]:
+    """Sensible first-run picks: the Windows default mic, and a virtual cable
+    (so Discord and games hear the voice) if there is one, else the Windows
+    default output."""
+    if default_names is None:
+        try:
+            default_names = _system_default_names()
+        except Exception:
+            default_names = (None, None)
+    inputs = [d for d in devices if d["inputs"] > 0]
+    outputs = [d for d in devices if d["outputs"] > 0]
+    # A cable's *output* end is an input device; never pick it as the mic.
+    mics = [d for d in inputs if "cable" not in d["name"].lower()] or inputs
+    mic = _match(mics, default_names[0]) or (mics[0] if mics else None)
+    cables = [d for d in outputs if d["name"].lower().startswith("cable input")]
+    out = (cables[0] if cables else None) or _match(outputs, default_names[1]) or (outputs[0] if outputs else None)
+    return (mic["index"] if mic else None, out["index"] if out else None)
+
+
+def find_by_name(devices: list[dict[str, Any]], name: str | None, kind: str) -> int | None:
+    """Device index for a saved device name, or None if it's gone."""
+    pool = [d for d in devices if d["inputs" if kind == "input" else "outputs"] > 0]
+    found = _match(pool, name)
+    return found["index"] if found else None
 
 
 class Streams:
     """Mic input, main output and an optional ear-monitor output.
 
-    The input callback queues raw blocks; ``on_block`` (run by the engine's
-    worker thread) turns them into output blocks; output callbacks drain their
-    queues and play silence when nothing is ready.
+    The input callback hands raw blocks to ``on_input``; the engine's worker
+    thread turns them into output blocks and calls ``play``; output callbacks
+    drain their queues and play silence when nothing is ready.
     """
 
     def __init__(
@@ -68,20 +123,22 @@ class Streams:
         self.block_size = block_size
         self.devices = (input_device, output_device, monitor_device)
         self.on_input = on_input
-        self.out_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=6)
-        self.mon_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=6)
+        self.out_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=4)
+        self.mon_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=4)
         self._streams: list[Any] = []
 
     def start(self) -> None:
         import sounddevice as sd
 
-        all_devs = sd.query_devices()
         in_id, out_id, mon_id = self.devices
         in_id = sd.default.device[0] if in_id is None else in_id
         out_id = sd.default.device[1] if out_id is None else out_id
 
-        def extra(dev):
-            return sd.WasapiSettings(exclusive=False, auto_convert=True) if _host_tag(sd, dev) == "WASAPI" else None
+        def extra(dev_id):
+            dev = sd.query_devices(dev_id)
+            if "WASAPI" in _host_name(sd, dev):
+                return sd.WasapiSettings(exclusive=False, auto_convert=True)
+            return None
 
         def in_cb(indata, frames, time_info, status):  # noqa: ARG001
             if self.on_input is not None:
@@ -104,19 +161,18 @@ class Streams:
             return out_cb
 
         try:
-            in_dev = all_devs[in_id]
             self._streams.append(
                 sd.InputStream(device=in_id, samplerate=self.sample_rate, blocksize=self.block_size, channels=1,
-                               dtype="float32", extra_settings=extra(in_dev), callback=in_cb)
+                               dtype="float32", extra_settings=extra(in_id), callback=in_cb)
             )
             for dev_id, q in ((out_id, self.out_queue), (mon_id, self.mon_queue)):
                 if dev_id is None:
                     continue
-                dev = all_devs[dev_id]
-                channels = min(2, max(1, dev["max_output_channels"]))
+                # VB-Cable's WASAPI end is mono, most speakers are stereo or more.
+                channels = min(2, max(1, sd.query_devices(dev_id)["max_output_channels"]))
                 self._streams.append(
                     sd.OutputStream(device=dev_id, samplerate=self.sample_rate, blocksize=self.block_size,
-                                    channels=channels, dtype="float32", extra_settings=extra(dev),
+                                    channels=channels, dtype="float32", extra_settings=extra(dev_id),
                                     callback=make_out_cb(q, channels))
                 )
             for stream in self._streams:

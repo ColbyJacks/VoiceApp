@@ -102,9 +102,22 @@ def find_index(model_path: str | Path) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
-def load_converter(model_path: str | Path | None, block_size: int = DEFAULT_BLOCK_SIZE) -> Converter:
-    """Converter for a .pth path, or a passthrough when no model is chosen."""
+_FIND = object()
+
+
+def load_converter(
+    model_path: str | Path | None,
+    block_size: int = DEFAULT_BLOCK_SIZE,
+    index_path: str | Path | None | object = _FIND,
+) -> Converter:
+    """Converter for a .pth path, or a passthrough when no model is chosen.
+
+    ``index_path`` defaults to the same-name .index next to the model; pass
+    one explicitly (or None for no index) to override.
+    """
     if model_path is None:
         return PassthroughConverter()
     info = load_model_info(model_path)
-    return RvcConverter(info, index_path=find_index(model_path), block_size=block_size)
+    if index_path is _FIND:
+        index_path = find_index(model_path)
+    return RvcConverter(info, index_path=index_path, block_size=block_size)
