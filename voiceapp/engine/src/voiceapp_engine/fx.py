@@ -1,8 +1,8 @@
-"""The FX rack from the tray app: reverb, echo, chorus, radio, always-on limiter."""
+"""Optional voice effects: reverb, echo, robot (chorus) and radio."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import asdict, dataclass, fields
 from typing import Any
 
 
@@ -28,9 +28,23 @@ class FxSettings:
         for name, value in changes.items():
             setattr(self, name, type(getattr(self, name))(value))
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @property
+    def any_on(self) -> bool:
+        return self.reverb or self.delay or self.chorus or self.radio
+
 
 def build_board(fx: FxSettings):
-    """A pedalboard chain for the current settings. Imports pedalboard lazily."""
+    """A pedalboard chain for the enabled effects, or None when all are off.
+
+    There is deliberately no always-on limiter: pedalboard's Limiter adds about
+    4 dB of make-up gain, which made the old tray app louder than intended.
+    The engine clips to [-1, 1] at the very end instead.
+    """
+    if not fx.any_on:
+        return None
     import pedalboard
 
     plugins = []
@@ -46,6 +60,4 @@ def build_board(fx: FxSettings):
         plugins.append(pedalboard.Bitcrush(bit_depth=fx.radio_bits))
         plugins.append(pedalboard.HighpassFilter(cutoff_frequency_hz=300))
         plugins.append(pedalboard.LowpassFilter(cutoff_frequency_hz=3400))
-    # Transparent soft limiter, always on, so the volume booster can't clip.
-    plugins.append(pedalboard.Limiter(threshold_db=-0.5, release_ms=50))
     return pedalboard.Pedalboard(plugins)
